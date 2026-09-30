@@ -1,0 +1,15 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0;
+  font-size: 14px;
+  color: var(--dsw-alias-label-primary);
+}
+
+.toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--dsw-alias-brand-primary);
+}

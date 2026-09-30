@@ -1,7 +1,7 @@
 /**
  * Generate `docs/tool-catalog.md` from schemas collected by booting each tool
  * plugin. Runtime registration is the source of truth for computed schemas;
- * the manifest is checked against every on-disk `tool-*` package. `--check`
+ * the manifest is checked against on-disk tool and media-generation packages. `--check`
  * verifies the committed artifact. Rationale and ownership live in
  * `.agents/notes/implemented/process/2026-07-02-tool-schema-catalog.md`.
  */
@@ -65,6 +65,9 @@ import * as ToolTodo from '@deepseek-ai/dsh-tool-todo'
 import * as ToolSubagent from '@deepseek-ai/dsh-tool-subagent'
 import { registerListSubagentModels } from '../packages/subagent/tool-subagent/src/list-models.ts'
 import * as ToolWeb from '@deepseek-ai/dsh-tool-web'
+import * as ToolQwenTts from '@deepseek-ai/dsh-speech-generation-qwen'
+import * as ToolEvolinkImage from '@deepseek-ai/dsh-image-generation-evolink'
+import * as ToolHyperframes from '@deepseek-ai/dsh-hyperframes-tools'
 import VmWorkflowEngine from '@deepseek-ai/dsh-workflow-worker-thread'
 import * as ToolRalph from '@deepseek-ai/dsh-tool-ralph'
 import * as ToolWorkflow from '@deepseek-ai/dsh-tool-workflow'
@@ -183,9 +186,8 @@ export interface ToolPackage {
 }
 
 /**
- * The boot manifest: every shipped tool package (a `tool-*` leaf under
- * `packages/`). Ordered by package name (the render order); the completeness
- * guard proves it is exhaustive against the on-disk glob.
+ * The boot manifest: every shipped tool package. Ordered by package name
+ * (the render order); the completeness guard checks the supported directory patterns.
  */
 const TOOL_PACKAGES: ToolPackage[] = [
   {
@@ -612,6 +614,40 @@ const TOOL_PACKAGES: ToolPackage[] = [
     note:
       'web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps.',
   },
+  {
+    pkg: '@deepseek-ai/dsh-speech-generation-qwen',
+    dir: 'speech-generation-qwen',
+    source: 'packages/media/speech-generation-qwen/src/index.ts',
+    requires: ['ctx.tools', 'DASHSCOPE_API_KEY at execution'],
+    writes: ['tool/call', 'tool/result'],
+    async mount(ctx) {
+      await ctx.plugin(ToolQwenTts, { enabled: true })
+    },
+    note: 'The shipped tool is enabled by default and can be disabled in Plugins settings; audio URLs expire at the provider-reported time.',
+  },
+  {
+    pkg: '@deepseek-ai/dsh-image-generation-evolink',
+    dir: 'image-generation-evolink',
+    source: 'packages/media/image-generation-evolink/src/index.ts',
+    requires: ['ctx.tools', 'EVOLINK_API_KEY at execution'],
+    writes: ['tool/call', 'tool/result'],
+    async mount(ctx) {
+      await ctx.plugin(ToolEvolinkImage, { enabled: true })
+    },
+    note: 'The shipped tool is enabled by default and can be disabled in Plugins settings; generated image URLs expire after 24 hours.',
+  },
+  {
+    pkg: '@deepseek-ai/dsh-hyperframes-tools',
+    dir: 'hyperframes-tools',
+    source: 'packages/media/hyperframes-tools/src/index.ts',
+    requires: ['ctx.tools', 'ctx.subprocess'],
+    writes: ['tool/call', 'project snapshots or rendered MP4', 'tool/result'],
+    async mount(ctx) {
+      await ctx.plugin(LocalSubprocessRuntime)
+      await ctx.plugin(ToolHyperframes, { enabled: true })
+    },
+    note: 'The shipped tools are enabled by default and can be disabled from Plugins settings; rendering uses the bundled Hyperframes CLI.',
+  },
 ]
 
 /** One package's contribution to the catalog: its schemas plus attribution. */
@@ -630,8 +666,7 @@ interface CatalogPackage {
 export type ToolCatalog = CatalogPackage[]
 
 /**
- * Assert the boot manifest covers every shipped tool package on disk (a
- * `tool-*` leaf under `packages/`).
+ * Assert the boot manifest covers every shipped tool package on disk.
  * Booting has no source declaration to enumerate, so this glob restores the
  * "a new tool cannot be silently undocumented" guarantee: an unlisted package
  * fails the generator (and the freshness gate) until it is added to
@@ -640,7 +675,11 @@ export type ToolCatalog = CatalogPackage[]
  * `scanRoot` defaults to the repo root; a test may point it at a fixture tree.
  */
 export function assertManifestComplete(packages: ToolPackage[] = TOOL_PACKAGES, scanRoot: string = root): void {
-  const onDisk = globSync('packages/*/tool-*', { cwd: scanRoot }).map(p => basename(p)).sort()
+  const onDisk = [
+    ...globSync('packages/*/tool-*', { cwd: scanRoot }),
+    ...globSync('packages/media/speech-generation-*', { cwd: scanRoot }),
+    ...globSync('packages/media/image-generation-*', { cwd: scanRoot }),
+  ].map(p => basename(p)).sort()
   const listed = new Set(packages.map(p => p.dir))
   const missing = onDisk.filter(dir => !listed.has(dir))
   if (missing.length > 0) {
@@ -753,9 +792,9 @@ export function render(catalog: ToolCatalog): string {
     '',
     'Every model-facing tool a shipped plugin contributes to `ctx.tools`: the `name`, `description`, and JSON-Schema `parameters` the model receives via the system-prompt assembly. It complements the [subsystem pages](subsystems/core.md) (the types plus each page\'s generated Cordis API region) — this page is the *tools* the agent is offered.',
     '',
-    'This file is GENERATED and verified fresh by `pnpm run verify-tool-catalog` (part of `doc-sync`) — do not edit it by hand. Unlike the cordis catalog (a pure source-AST pass), this generator BOOTS each tool plugin on a real context and reads `ctx.tools.schemas()`, because a tool schema is not statically knowable (runtime-spread enums, concatenated descriptions, config-driven names, raw-JSON-Schema MCP tools). A completeness guard globs `packages/*/tool-*` and fails if any package is missing from the generator\'s boot manifest, so a new tool cannot be silently undocumented. See [the tool-schema-catalog Agent Note](../.agents/notes/implemented/process/2026-07-02-tool-schema-catalog.md).',
+    'This file is GENERATED and verified fresh by `pnpm run verify-tool-catalog` (part of `doc-sync`) — do not edit it by hand. Unlike the cordis catalog (a pure source-AST pass), this generator BOOTS each tool plugin on a real context and reads `ctx.tools.schemas()`, because a tool schema is not statically knowable (runtime-spread enums, concatenated descriptions, config-driven names, raw-JSON-Schema MCP tools). A completeness guard scans `packages/*/tool-*` and `packages/media/{speech,image}-generation-*` and fails if any package is missing from the generator\'s boot manifest, so a new tool cannot be silently undocumented. See [the tool-schema-catalog Agent Note](../.agents/notes/implemented/process/2026-07-02-tool-schema-catalog.md).',
     '',
-    'Scope: shipped product tools under `packages/*/tool-*`, each booted with its DEFAULT config, except where a Config field is REQUIRED with no default — there the generator must choose, and the per-package note records which branch this page shows. The registered tool NAME can be a load-time config (e.g. `tool-subagent`\'s `toolName`), so a deployment may expose a package under a different or additional name — a per-package note records those shipped aliases where they exist. The `examples/` demo tools (e.g. `echo`) are excluded, matching the cordis catalog\'s packages-only scope.',
+    'Scope: shipped product tools under `packages/*/tool-*` and `packages/media/{speech,image}-generation-*`, each booted with its DEFAULT config, except where a Config field is REQUIRED with no default — there the generator must choose, and the per-package note records which branch this page shows. The registered tool NAME can be a load-time config (e.g. `tool-subagent`\'s `toolName`), so a deployment may expose a package under a different or additional name — a per-package note records those shipped aliases where they exist. The `examples/` demo tools (e.g. `echo`) are excluded, matching the cordis catalog\'s packages-only scope.',
     '',
     '## Tool Package Map',
     '',

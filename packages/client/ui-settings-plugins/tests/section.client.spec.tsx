@@ -16,12 +16,18 @@ import { SubagentModelSelectionCard } from '../src/client/SubagentModelSelection
 import type { SubagentModelSelectionCardProps } from '../src/client/SubagentModelSelectionCard.tsx'
 import { WebSearchCard } from '../src/client/WebSearchCard.tsx'
 import type { WebSearchCardProps } from '../src/client/WebSearchCard.tsx'
+import { EvolinkImageCard } from '../src/client/EvolinkImageCard.tsx'
+import type { EvolinkImageCardProps } from '../src/client/EvolinkImageCard.tsx'
+import { QwenTtsCard } from '../src/client/QwenTtsCard.tsx'
+import type { QwenTtsCardProps } from '../src/client/QwenTtsCard.tsx'
 import type { AgentLoopCardState } from '../src/client/agent-loop-card-controller.ts'
 import type { BashCardState } from '../src/client/bash-card-controller.ts'
 import type { CardFieldState, CardShell } from '../src/client/card-form.ts'
 import type { ConfigurablePluginsTabState } from '../src/client/tab-store.ts'
 import type { WebSearchCardState } from '../src/client/web-search-card-controller.ts'
 import type { SubagentModelSelectionCardState } from '../src/client/subagent-model-selection-card-controller.ts'
+import type { EvolinkImageCardState } from '../src/client/evolink-image-card-controller.ts'
+import type { QwenTtsCardState } from '../src/client/qwen-tts-card-controller.ts'
 import { en } from '../src/client/locales.ts'
 
 afterEach(cleanup)
@@ -109,6 +115,39 @@ function renderSubagentModelSelection(state: Partial<SubagentModelSelectionCardS
     useSubagentModelSelectionCard: bindSnapshotSelector(store),
   } as unknown as SubagentModelSelectionCardProps
   render(<SubagentModelSelectionCard {...props} />)
+  return actions
+}
+
+function renderEvolinkImage(state: Partial<EvolinkImageCardState> = {}) {
+  const store = createSnapshotStore<EvolinkImageCardState>({
+    ...settled,
+    enabled: false,
+    ...state,
+  })
+  const actions = { toggleEnabled: vi.fn(), save: vi.fn(), discard: vi.fn(), edit: vi.fn(), resetField: vi.fn() }
+  const props = {
+    ...actions,
+    t,
+    useEvolinkImageCard: bindSnapshotSelector(store),
+  } as unknown as EvolinkImageCardProps
+  render(<EvolinkImageCard {...props} />)
+  return actions
+}
+
+function renderQwenTts(state: Partial<QwenTtsCardState> = {}) {
+  const store = createSnapshotStore<QwenTtsCardState>({
+    ...settled,
+    enabled: false,
+    model: field('qwen3-tts-flash'),
+    ...state,
+  })
+  const actions = { toggleEnabled: vi.fn(), save: vi.fn(), discard: vi.fn(), edit: vi.fn(), resetField: vi.fn() }
+  const props = {
+    ...actions,
+    t,
+    useQwenTtsCard: bindSnapshotSelector(store),
+  } as unknown as QwenTtsCardProps
+  render(<QwenTtsCard {...props} />)
   return actions
 }
 
@@ -498,6 +537,41 @@ describe('AgentLoopCard', () => {
     fireEvent.click(screen.getByRole('button', { name: en.reset }))
 
     expect(actions.resetField).toHaveBeenCalledWith('maxParallelToolCalls')
+  })
+})
+
+describe('EvolinkImageCard', () => {
+  it('stages the enabled switch and disables it for read-only settings', () => {
+    const actions = renderEvolinkImage()
+    fireEvent.click(screen.getByText(en.evolinkImageTitle))
+    fireEvent.click(screen.getByRole('switch', { name: en.evolinkImageEnabled }))
+
+    expect(actions.toggleEnabled).toHaveBeenCalledOnce()
+    cleanup()
+
+    renderEvolinkImage({ writable: false })
+    fireEvent.click(screen.getByText(en.evolinkImageTitle))
+    expect(screen.getByRole('switch', { name: en.evolinkImageEnabled })).toHaveProperty('disabled', true)
+  })
+})
+
+describe('QwenTtsCard', () => {
+  it('stages the enabled switch and model, and disables both for read-only settings', () => {
+    const actions = renderQwenTts()
+    fireEvent.click(screen.getByText(en.qwenTtsTitle))
+    fireEvent.click(screen.getByRole('switch', { name: en.qwenTtsEnabled }))
+    fireEvent.change(screen.getByLabelText(en.qwenTtsModel), {
+      target: { value: 'qwen3-tts-flash-2025-11-27' },
+    })
+
+    expect(actions.toggleEnabled).toHaveBeenCalledOnce()
+    expect(actions.edit).toHaveBeenCalledWith('model', 'qwen3-tts-flash-2025-11-27')
+    cleanup()
+
+    renderQwenTts({ writable: false })
+    fireEvent.click(screen.getByText(en.qwenTtsTitle))
+    expect(screen.getByRole('switch', { name: en.qwenTtsEnabled })).toHaveProperty('disabled', true)
+    expect(screen.getByLabelText(en.qwenTtsModel)).toHaveProperty('disabled', true)
   })
 })
 

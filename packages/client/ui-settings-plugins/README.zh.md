@@ -25,7 +25,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-打开设置中的「插件」分区并选择**插件配置**标签页，即可编辑本部署所组装的宿主平面插件。卡片依次为 shell 执行器（`bash`）、agent 循环的工具调用并行度（`agent-loop`）、subagent 模型选择（`subagent-model-selection`）以及 DeepSeek 搜索提供方（`web-search-deepseek`）。
+打开设置中的「插件」分区并选择**插件配置**标签页，即可编辑本部署所组装的宿主平面插件。卡片依次为 shell 执行器（`bash`）、agent 循环的工具调用并行度（`agent-loop`）、subagent 模型选择（`subagent-model-selection`）、DeepSeek 搜索提供方（`web-search-deepseek`）、千问语音生成（`speech-generation-qwen`）、Evolink 图片生成（`image-generation-evolink`）以及 Hyperframes 视频工具（`hyperframes-tools`）。
 
 ### 这里会出现什么
 

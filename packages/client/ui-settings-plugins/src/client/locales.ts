@@ -11,6 +11,9 @@ export type PluginsSettingsLocaleKey =
   | 'webSearchTitle' | 'webSearchDescription'
   | 'webSearchApiKey' | 'webSearchApiKeyHint' | 'webSearchApiKeySet' | 'webSearchApiKeyUnset'
   | 'webSearchBaseUrl' | 'webSearchBaseUrlHint' | 'webSearchMaxUses' | 'webSearchMaxUsesHint'
+  | 'qwenTtsTitle' | 'qwenTtsDescription' | 'qwenTtsEnabled' | 'qwenTtsModel' | 'qwenTtsModelHint' | 'qwenTtsModelInvalid'
+  | 'evolinkImageTitle' | 'evolinkImageDescription' | 'evolinkImageEnabled'
+  | 'hyperframesToolsTitle' | 'hyperframesToolsDescription' | 'hyperframesToolsEnabled'
   | 'subagentModelSelectionTitle' | 'subagentModelSelectionDescription'
   | 'subagentModelSelectionToggle' | 'subagentModelSelectionChoose' | 'subagentModelSelectionAllowed'
   | 'subagentModelSelectionLoading' | 'subagentModelSelectionLoadFailed' | 'subagentModelSelectionRetry'
@@ -57,6 +60,18 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   webSearchBaseUrlHint: 'Leave blank to use the provider default.',
   webSearchMaxUses: 'Max searches per request',
   webSearchMaxUsesHint: 'How many times one request may search before it must answer.',
+  qwenTtsTitle: 'Qwen text to speech',
+  qwenTtsDescription: 'Generate downloadable speech from text with a chosen voice.',
+  qwenTtsEnabled: 'Enable the Agent speech tool',
+  qwenTtsModel: 'Model',
+  qwenTtsModelHint: 'Qwen3-TTS model used for new requests.',
+  qwenTtsModelInvalid: 'Enter a model name.',
+  evolinkImageTitle: 'Evolink image generation',
+  evolinkImageDescription: 'Generate images with Z-Image-Turbo from a text prompt.',
+  evolinkImageEnabled: 'Enable the Agent image tool',
+  hyperframesToolsTitle: 'Hyperframes video tools',
+  hyperframesToolsDescription: 'Lint, snapshot, and render Hyperframes projects.',
+  hyperframesToolsEnabled: 'Enable the Agent Hyperframes tools',
   subagentModelSelectionTitle: 'Subagent',
   subagentModelSelectionDescription: 'Control which models agents may choose for subagents.',
   subagentModelSelectionToggle: 'Allow agents to choose models for subagents',
@@ -113,6 +128,18 @@ export const zh: Record<PluginsSettingsLocaleKey, string> = {
   webSearchBaseUrlHint: '留空则使用提供方默认地址。',
   webSearchMaxUses: '单次请求最多搜索次数',
   webSearchMaxUsesHint: '一次请求在必须作答前最多可以搜索多少次。',
+  qwenTtsTitle: '千问文字转语音',
+  qwenTtsDescription: '将文字转换为可下载语音，并可指定音色。',
+  qwenTtsEnabled: '启用 Agent 语音工具',
+  qwenTtsModel: '模型',
+  qwenTtsModelHint: '新请求使用的 Qwen3-TTS 模型。',
+  qwenTtsModelInvalid: '请输入模型名称。',
+  evolinkImageTitle: 'Evolink 图片生成',
+  evolinkImageDescription: '使用 Z-Image-Turbo 根据文字提示生成图片。',
+  evolinkImageEnabled: '启用 Agent 图片工具',
+  hyperframesToolsTitle: 'Hyperframes 视频工具',
+  hyperframesToolsDescription: '检查、截图并渲染 Hyperframes 项目。',
+  hyperframesToolsEnabled: '启用 Agent Hyperframes 工具',
   subagentModelSelectionTitle: 'Subagent',
   subagentModelSelectionDescription: '控制 Agent 为 Subagent 选择模型的权限。',
   subagentModelSelectionToggle: '允许 Agent 为 Subagent 选择模型',

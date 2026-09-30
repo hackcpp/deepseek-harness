@@ -1,0 +1,28 @@
+{
+  "extends": "../../../tsconfig.base.client.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types",
+    "tsBuildInfoFile": "lib/tsconfig.client.tsbuildinfo"
+  },
+  "files": [
+    "src/contract.ts",
+    "src/client/controller.ts",
+    "src/client/index.ts",
+    "src/client/locales.ts",
+    "src/client/VideoCanvas.tsx",
+    "src/client/VideoModeSwitch.tsx",
+    "src/client/VideoProjectList.tsx",
+    "src/css-modules.d.ts"
+  ],
+  "references": [
+    { "path": "../../../vendor/cordis" },
+    { "path": "../../api/session-controller/tsconfig.client.json" },
+    { "path": "../connection/tsconfig.client.json" },
+    { "path": "../locale" },
+    { "path": "../store" },
+    { "path": "../ui-layout" },
+    { "path": "../ui-renderer" },
+    { "path": "../ui-slots" }
+  ]
+}

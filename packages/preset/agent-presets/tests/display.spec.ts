@@ -16,6 +16,13 @@ describe('presetDisplayText', () => {
     })
   })
 
+  it('resolves video mode through its dictionary keys', () => {
+    expect(presetDisplayText({ id: 'video', trust: 'system', name: '视频制作模式' }, t)).toEqual({
+      name: 't:presetVideoName',
+      description: 't:presetVideoDescription',
+    })
+  })
+
   it('keeps user-authored metadata untranslated', () => {
     expect(presetDisplayText({ id: 'mine', trust: 'user', name: '我的模式', description: '自述' }, t))
       .toEqual({ name: '我的模式', description: '自述' })
