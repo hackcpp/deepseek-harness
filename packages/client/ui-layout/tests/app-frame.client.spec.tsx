@@ -210,6 +210,16 @@ describe('AppFrame', () => {
     expect(slotCalls.map(c => c.key)).toContain('details')
   })
 
+  it('moves the conversation beside mode navigation and canvas in video mode', () => {
+    const { frame, instance, slotCalls } = mountFrame()
+    act(() => { instance.actions.setApplicationMode('video') })
+    expect(frame.dataset.applicationMode).toBe('video')
+    expect(frame.style.gridTemplateColumns).toBe('240px minmax(0, 1fr) minmax(360px, 32vw)')
+    expect(slotCalls.map(call => call.key)).toContain('shell.mode.navigation')
+    expect(slotCalls.map(call => call.key)).toContain('shell.mode.canvas')
+    expect(frame.querySelectorAll('[class*="handle"]')).toHaveLength(0)
+  })
+
   it('ignores unselected states and closes only when the Session id changes', () => {
     const { frame, instance, rerenderFrame } = mountFrame()
     expect(tracks(frame)).toEqual([280, 0])

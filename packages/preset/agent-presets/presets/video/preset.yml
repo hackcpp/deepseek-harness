@@ -1,0 +1,3 @@
+name: 视频制作模式
+description: 基于 Hyperframes 的分阶段视频制作 Agent，负责脚本、分镜、旁白、画面检查与按需导出。
+order: 5

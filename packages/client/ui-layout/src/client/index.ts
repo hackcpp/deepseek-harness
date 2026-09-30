@@ -13,6 +13,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 import type {} from '@deepseek-ai/dsh-client-ui-theme/client'
 import type { PanelActions } from './service.ts'
+import type { ApplicationMode } from './stores.ts'
 import { AppFrame } from './AppFrame.tsx'
 import { createLayoutStore } from './stores.ts'
 import { LayoutController } from './service.ts'
@@ -84,6 +85,12 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
      * `id` is added beside the shipped entries instead of replacing them.
      */
     'shell.overlay': { kind: 'list'; scope: 'root' }
+    /** Optional application-mode switchers shown in the shell top bar. */
+    'shell.mode.switcher': { kind: 'list'; scope: 'root'; owner: ShellModeOwnerProps }
+    /** Mode-specific left navigation dispatched by the active mode id. */
+    'shell.mode.navigation': { kind: 'keyed'; scope: 'root'; owner: ShellModeSurfaceProps }
+    /** Mode-specific center canvas dispatched by the active mode id. */
+    'shell.mode.canvas': { kind: 'keyed'; scope: 'root'; owner: ShellModeSurfaceProps }
   }
 }
 
@@ -107,6 +114,17 @@ export interface ConvOwnerProps {}
 /** Details owner share: empty — sessionId arrives as a framework-standard prop. */
 export interface DetailsOwnerProps {}
 
+/** Owner share for shell mode controls. */
+export interface ShellModeOwnerProps {
+  mode: ApplicationMode
+  setMode: (mode: ApplicationMode) => void
+}
+
+/** Owner share for mode-specific surfaces. */
+export interface ShellModeSurfaceProps {
+  mode: ApplicationMode
+}
+
 /** Required services (cordis fiber inject — the loader passes all module exports as an object plugin). */
 export const inject = ['slots', 'theme', 'locale']
 
@@ -128,6 +146,9 @@ export function apply(ctx: ClientContext): void {
         'conversation': { kind: 'single', scope: 'session-maybe' },
         'details': { kind: 'single', scope: 'session' },
         'shell.overlay': { kind: 'list', scope: 'root' },
+        'shell.mode.switcher': { kind: 'list', scope: 'root' },
+        'shell.mode.navigation': { kind: 'keyed', scope: 'root' },
+        'shell.mode.canvas': { kind: 'keyed', scope: 'root' },
       },
       // Exclusive store: the factory itself — the framework instantiates per
       // entry and delivers useStore/actions to AppFrame as standard props.

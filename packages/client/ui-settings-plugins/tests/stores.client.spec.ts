@@ -19,6 +19,10 @@ import {
   type SubagentModelSelectionSettings,
 } from '../src/client/subagent-model-selection-card-controller.ts'
 import { WebSearchCardController, type WebSearchSettings } from '../src/client/web-search-card-controller.ts'
+import {
+  EvolinkImageCardController, type EvolinkImageSettings,
+} from '../src/client/evolink-image-card-controller.ts'
+import { QwenTtsCardController, type QwenTtsSettings } from '../src/client/qwen-tts-card-controller.ts'
 
 /** Make the stub behave like a Host that accepts every write. */
 function acceptWrites<T>(host: StubSettingsScope<T>): void {
@@ -430,6 +434,50 @@ describe('AgentLoopCardController', () => {
     host.publish({ status: 'ready', writable: false, value: { maxParallelToolCalls: 10 } })
 
     expect(controller.inject().hooks.agentLoopCard.getSnapshot().writable).toBe(false)
+  })
+})
+
+describe('EvolinkImageCardController', () => {
+  it('stages and saves the image tool switch', async () => {
+    const host = stubSettingsScope<EvolinkImageSettings>()
+    acceptWrites(host)
+    const controller = new EvolinkImageCardController(host.scope)
+    host.publish({
+      status: 'ready', writable: true, value: { enabled: false }, base: { enabled: false }, user: {},
+    })
+    const face = controller.inject()
+
+    face.toggleEnabled()
+    expect(face.hooks.evolinkImageCard.getSnapshot()).toMatchObject({ enabled: true, dirty: true })
+    face.save()
+    await vi.waitFor(() => { expect(host.set).toHaveBeenCalledWith('enabled', true) })
+
+    expect(face.hooks.evolinkImageCard.getSnapshot()).toMatchObject({ enabled: true, dirty: false })
+  })
+})
+
+describe('QwenTtsCardController', () => {
+  it('stages and saves the tool switch and model', async () => {
+    const host = stubSettingsScope<QwenTtsSettings>()
+    acceptWrites(host)
+    const controller = new QwenTtsCardController(host.scope)
+    host.publish({
+      status: 'ready', writable: true,
+      value: { enabled: false, model: 'qwen3-tts-flash' },
+      base: { enabled: false, model: 'qwen3-tts-flash' }, user: {},
+    })
+    const face = controller.inject()
+
+    face.toggleEnabled()
+    face.edit('model', 'qwen3-tts-flash-2025-11-27')
+    expect(face.hooks.qwenTtsCard.getSnapshot()).toMatchObject({ enabled: true, dirty: true })
+    face.save()
+    await vi.waitFor(() => {
+      expect(host.set).toHaveBeenCalledWith('enabled', true)
+      expect(host.set).toHaveBeenCalledWith('model', 'qwen3-tts-flash-2025-11-27')
+    })
+
+    expect(face.hooks.qwenTtsCard.getSnapshot()).toMatchObject({ enabled: true, dirty: false })
   })
 })
 

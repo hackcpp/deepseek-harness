@@ -7,9 +7,9 @@
 
 已发布插件向 `ctx.tools` 提供的所有面向模型的工具：模型通过系统提示词组装获得的 `name`、`description` 和 JSON Schema `parameters`。本目录是[子系统页面](subsystems/core.zh.md)（类型及每页生成的 `cordis-surface` 接线区域）的补充；本页列出的是向 agent（智能体）提供的*工具*。
 
-英文源文件由系统**生成**，并通过 `pnpm run verify-tool-catalog`（`doc-sync`（文档同步门禁）的一部分）验证新鲜度；本中文文件作为经评审对侧通过双语配对维护。与 Cordis 目录（纯源码 AST 处理）不同，英文生成器会在真实上下文中**启动**每个工具插件并读取 `ctx.tools.schemas()`，因为工具 schema 无法通过静态分析完全确定，例如运行时展开的枚举、拼接的描述、由配置决定的名称以及使用原始 JSON Schema 的 MCP 工具。完整性守卫会 glob 匹配 `packages/*/tool-*`；如果生成器的启动 manifest（元数据清单）遗漏任何包，检查就会失败，因此新工具不会在无人察觉的情况下缺少文档。参见[工具 schema 目录 Agent Note](../.agents/notes/implemented/process/2026-07-02-tool-schema-catalog.zh.md)。
+英文源文件由系统**生成**，并通过 `pnpm run verify-tool-catalog`（`doc-sync`（文档同步门禁）的一部分）验证新鲜度；本中文文件作为经评审对侧通过双语配对维护。与 Cordis 目录（纯源码 AST 处理）不同，英文生成器会在真实上下文中**启动**每个工具插件并读取 `ctx.tools.schemas()`，因为工具 schema 无法通过静态分析完全确定，例如运行时展开的枚举、拼接的描述、由配置决定的名称以及使用原始 JSON Schema 的 MCP 工具。完整性守卫会扫描 `packages/*/tool-*` 与 `packages/media/{speech,image}-generation-*`；如果生成器的启动 manifest（元数据清单）遗漏任何包，检查就会失败，因此新工具不会在无人察觉的情况下缺少文档。参见[工具 schema 目录 Agent Note](../.agents/notes/implemented/process/2026-07-02-tool-schema-catalog.zh.md)。
 
-范围：`packages/*/tool-*` 下已发布的产品工具，每个工具均使用其**默认**配置启动；但如果某个 Config 字段是**必填项**且没有默认值，生成器就必须作出选择，对应包的说明会记录本页展示的是哪个分支。注册的工具**名称**可以是加载时配置，例如 `tool-subagent` 的 `toolName`，因此部署可能以不同名称或额外名称提供某个包；如果存在随产品发布的别名，对应包的说明会予以记录。`examples/` 中的演示工具（例如 `echo`）不在范围内，这与 Cordis 目录仅涵盖包的范围一致。
+范围：`packages/*/tool-*` 与 `packages/media/{speech,image}-generation-*` 下已发布的产品工具，每个工具均使用其**默认**配置启动；但如果某个 Config 字段是**必填项**且没有默认值，生成器就必须作出选择，对应包的说明会记录本页展示的是哪个分支。注册的工具**名称**可以是加载时配置，例如 `tool-subagent` 的 `toolName`，因此部署可能以不同名称或额外名称提供某个包；如果存在随产品发布的别名，对应包的说明会予以记录。`examples/` 中的演示工具（例如 `echo`）不在范围内，这与 Cordis 目录仅涵盖包的范围一致。
 
 <a id="tool-package-map"></a>
 
@@ -45,6 +45,9 @@
 | `@deepseek-ai/dsh-tool-todo` | `todo_write` | `ctx.tools`、`owning Agent session` | `tool/call`、`todo/write`、`tool/result` | - | todo_write 是会话所有的状态；UI 将最新的 todo/write 事件渲染为检查清单。`allowParallelInProgress` 是没有默认值的必填项，因此本目录明确选择 `true`，对应描述允许同时存在多个 `in_progress` 项。选择 `false` 的部署会获得同一工具，但描述会要求只能有 1 个活动任务。 |
 | `@deepseek-ai/dsh-tool-workflow` | `workflow` | `ctx.tools`、`ctx.workflowEngine`、`ctx.systemPrompt`、`a calling Agent (exec.agent parents the script children)` | `tool/call`、`tool/result` | - | - |
 | `@deepseek-ai/dsh-tool-web` | `web_fetch`、`web_search` | `ctx.tools`、`ctx.web`、`ctx.systemPrompt` | `tool/call`、`tool/result` | - | web_search 和 web_fetch 将提供方选择置于 ctx.web 之后，使模型可见 schema 在更换后端时保持稳定。 |
+| `@deepseek-ai/dsh-speech-generation-qwen` | `generate_speech` | `ctx.tools`、`执行时使用 DASHSCOPE_API_KEY` | `tool/call`、`tool/result` | - | 此工具默认启用，也可在插件设置中关闭。音频 URL 在提供方报告的时间过期。 |
+| `@deepseek-ai/dsh-image-generation-evolink` | `generate_image` | `ctx.tools`、`执行时使用 EVOLINK_API_KEY` | `tool/call`、`tool/result` | - | 此工具默认启用，也可以在插件设置中关闭。生成的图片 URL 在 24 小时后过期。 |
+| `@deepseek-ai/dsh-hyperframes-tools` | `video_lint`、`video_render`、`video_snapshot` | `ctx.tools`、`ctx.subprocess` | `tool/call`、`项目截图或渲染后的 MP4`、`tool/result` | - | 这些工具默认启用，可在插件设置中禁用。渲染使用随插件安装的 Hyperframes CLI。 |
 
 <a id="deepseek-aidsh-tool-ask-user"></a>
 
@@ -2285,3 +2288,162 @@ todo_write 是会话所有的状态；UI 将最新的 todo/write 事件渲染为
 来源：[`packages/web/tool-web/src/index.ts`](../packages/web/tool-web/src/index.ts)
 
 web_search 和 web_fetch 将提供方选择置于 ctx.web 之后，使模型可见 schema 在更换后端时保持稳定。
+
+<a id="deepseek-aidsh-speech-generation-qwen"></a>
+
+## `@deepseek-ai/dsh-speech-generation-qwen`
+
+### `generate_speech`
+
+使用 Qwen3-TTS 将文字生成语音。选择受支持的音色，例如 Cherry 或 Serena。结果是会过期的音频下载 URL。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "text": {
+      "type": "string",
+      "description": "Text to speak."
+    },
+    "voice": {
+      "type": "string",
+      "description": "Qwen3-TTS voice ID, for example Cherry or Serena."
+    }
+  },
+  "required": [
+    "text",
+    "voice"
+  ]
+}
+```
+
+来源：[`packages/media/speech-generation-qwen/src/index.ts`](../packages/media/speech-generation-qwen/src/index.ts)
+
+此工具默认启用，也可在插件设置中关闭。音频 URL 在提供方报告的时间过期。
+
+<a id="deepseek-aidsh-image-generation-evolink"></a>
+
+## `@deepseek-ai/dsh-image-generation-evolink`
+
+### `generate_image`
+
+使用 Evolink Z-Image-Turbo 根据提示词生成图片。返回会在 24 小时后过期的图片 URL。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "description": "Describe the image to generate (up to 2000 characters)."
+    },
+    "size": {
+      "type": "string",
+      "description": "Image aspect ratio; defaults to 1:1.",
+      "enum": [
+        "1:1",
+        "2:3",
+        "3:2",
+        "3:4",
+        "4:3",
+        "9:16",
+        "16:9",
+        "1:2",
+        "2:1"
+      ]
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional reproducible random seed (1 to 2147483647)."
+    },
+    "nsfw_check": {
+      "type": "boolean",
+      "description": "Enable stricter content filtering."
+    }
+  },
+  "required": [
+    "prompt"
+  ]
+}
+```
+
+来源：[`packages/media/image-generation-evolink/src/index.ts`](../packages/media/image-generation-evolink/src/index.ts)
+
+此工具默认启用，也可以在插件设置中关闭。生成的图片 URL 在 24 小时后过期。
+
+<a id="deepseek-aidsh-hyperframes-tools"></a>
+
+## `@deepseek-ai/dsh-hyperframes-tools`
+
+### `video_lint`
+
+运行 Hyperframes 项目静态检查，并报告语法和 composition 问题。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "projectPath": {
+      "type": "string",
+      "description": "Absolute path to a Hyperframes project directory."
+    }
+  },
+  "required": [
+    "projectPath"
+  ]
+}
+```
+
+来源：[`packages/media/hyperframes-tools/src/index.ts`](../packages/media/hyperframes-tools/src/index.ts)
+
+### `video_render`
+
+使用 Hyperframes 渲染器将 Hyperframes 项目渲染为 MP4 文件。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "projectPath": {
+      "type": "string",
+      "description": "Absolute path to a Hyperframes project directory."
+    }
+  },
+  "required": [
+    "projectPath"
+  ]
+}
+```
+
+来源：[`packages/media/hyperframes-tools/src/index.ts`](../packages/media/hyperframes-tools/src/index.ts)
+
+### `video_snapshot`
+
+渲染一至九个 Hyperframes 时间点，并将截图合成为每行三张的联系表。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "projectPath": {
+      "type": "string",
+      "description": "Absolute path to a Hyperframes project directory."
+    },
+    "times": {
+      "type": "array",
+      "description": "One to nine timestamps in seconds. Hyperframes renders them in this order.",
+      "items": {
+        "type": "number"
+      }
+    }
+  },
+  "required": [
+    "projectPath",
+    "times"
+  ]
+}
+```
+
+来源：[`packages/media/hyperframes-tools/src/index.ts`](../packages/media/hyperframes-tools/src/index.ts)
+
+这些工具默认启用，可在插件设置中禁用。渲染使用随插件安装的 Hyperframes CLI。

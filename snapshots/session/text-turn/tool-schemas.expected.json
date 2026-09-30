@@ -124,6 +124,66 @@
       }
     },
     {
+      "name": "generate_image",
+      "description": "Generate an image from a prompt with Evolink Z-Image-Turbo. Returns image URLs that expire after 24 hours.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Describe the image to generate (up to 2000 characters)."
+          },
+          "size": {
+            "type": "string",
+            "description": "Image aspect ratio; defaults to 1:1.",
+            "enum": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "9:16",
+              "16:9",
+              "1:2",
+              "2:1"
+            ]
+          },
+          "seed": {
+            "type": "integer",
+            "description": "Optional reproducible random seed (1 to 2147483647)."
+          },
+          "nsfw_check": {
+            "type": "boolean",
+            "description": "Enable stricter content filtering."
+          }
+        },
+        "required": [
+          "prompt"
+        ]
+      }
+    },
+    {
+      "name": "generate_speech",
+      "description": "Generate spoken audio from text with Qwen3-TTS. Choose a supported voice such as Cherry or Serena. Returns a downloadable audio URL that expires.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Text to speak."
+          },
+          "voice": {
+            "type": "string",
+            "description": "Qwen3-TTS voice ID, for example Cherry or Serena."
+          }
+        },
+        "required": [
+          "text",
+          "voice"
+        ]
+      }
+    },
+    {
       "name": "get_goal",
       "description": "Read the current same-session goal, including its exact id/revision, objective, phase, completed continuation rounds, round limit, blocker reason when present, and whether another continuation is armed. Call this before updating a goal.",
       "parameters": {
@@ -569,6 +629,62 @@
           "goal_id",
           "revision",
           "action"
+        ]
+      }
+    },
+    {
+      "name": "video_lint",
+      "description": "Run Hyperframes static project checks and report syntax and composition findings.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "projectPath": {
+            "type": "string",
+            "description": "Absolute path to a Hyperframes project directory."
+          }
+        },
+        "required": [
+          "projectPath"
+        ]
+      }
+    },
+    {
+      "name": "video_render",
+      "description": "Render a Hyperframes project to an MP4 file with the Hyperframes renderer.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "projectPath": {
+            "type": "string",
+            "description": "Absolute path to a Hyperframes project directory."
+          }
+        },
+        "required": [
+          "projectPath"
+        ]
+      }
+    },
+    {
+      "name": "video_snapshot",
+      "description": "Render one to nine Hyperframes timestamps and combine them into a three-column contact sheet.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "projectPath": {
+            "type": "string",
+            "description": "Absolute path to a Hyperframes project directory."
+          },
+          "times": {
+            "type": "array",
+            "description": "One to nine timestamps in seconds. Hyperframes renders them in this order.",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "projectPath",
+          "times"
         ]
       }
     },

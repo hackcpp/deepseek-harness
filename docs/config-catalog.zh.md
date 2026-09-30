@@ -358,6 +358,24 @@ export interface Config {
 
 来源：[`packages/client/hmr/src/index.ts:31`](../packages/client/hmr/src/index.ts)
 
+<a id="deepseek-aidsh-client-ui-video"></a>
+
+## `@deepseek-ai/dsh-client-ui-video`
+
+需要：`connection`
+
+```ts config-catalog
+/** Host configuration for video project discovery. */
+export interface Config {
+  /** Directory scanned for video project folders. */
+  projectsRoot?: string
+  /** Maximum directory depth searched for script.json. */
+  scanDepth?: number
+}
+```
+
+来源：[`packages/client/ui-video/src/index.ts:13`](../packages/client/ui-video/src/index.ts)
+
 <a id="deepseek-aidsh-code-runtime-worker-thread"></a>
 
 ## `@deepseek-ai/dsh-code-runtime-worker-thread`
@@ -832,6 +850,52 @@ export interface Config {
 ```
 
 来源：[`packages/host/webserver/src/index.ts:59`](../packages/host/webserver/src/index.ts)
+
+<a id="deepseek-aidsh-hyperframes-tools"></a>
+
+## `@deepseek-ai/dsh-hyperframes-tools`
+
+需要：`tools` · `subprocess`
+
+```ts config-catalog
+/** Hyperframes 工具注册和 CLI 执行的部署设置。 */
+export interface Config {
+  /** 为 true 时注册全部三个工具，默认为 true。 */
+  enabled?: boolean
+  /** 子进程执行环境中的 Hyperframes 可执行文件名称或绝对路径。 */
+  executable?: string
+  /** 单次 CLI 调用的最长时间。 */
+  timeoutMs?: number
+  /** 每个 stdout 和 stderr 流最多保留的字节数。 */
+  maxOutputBytes?: number
+}
+```
+
+来源：[`packages/media/hyperframes-tools/src/index.ts:20`](../packages/media/hyperframes-tools/src/index.ts)
+
+<a id="deepseek-aidsh-image-generation-evolink"></a>
+
+## `@deepseek-ai/dsh-image-generation-evolink`
+
+需要：`tools`
+
+```ts config-catalog
+/** Deployment settings for image generation. */
+export interface Config {
+  /** Register the tool while true; defaults to true. */
+  enabled?: boolean
+  /** Credential reference resolved for each tool call. */
+  apiKeyEnv?: string
+  /** HTTPS Evolink API root. */
+  apiBaseUrl?: string
+  /** Delay between task-status requests. */
+  pollIntervalMs?: number
+  /** Total time allowed for creation, polling, and results. */
+  timeoutMs?: number
+}
+```
+
+来源：[`packages/media/image-generation-evolink/src/index.ts:23`](../packages/media/image-generation-evolink/src/index.ts)
 
 <a id="deepseek-aidsh-invariants"></a>
 
@@ -2066,6 +2130,32 @@ export interface Config {
 ```
 
 来源：[`packages/skill/skill-filesystem/src/index.ts:49`](../packages/skill/skill-filesystem/src/index.ts)
+
+<a id="deepseek-aidsh-speech-generation-qwen"></a>
+
+## `@deepseek-ai/dsh-speech-generation-qwen`
+
+需要：`tools`
+
+```ts config-catalog
+/** Deployment settings for the tool and its provider request. */
+export interface Config {
+  /** Register the Agent tool when true; defaults to true. */
+  enabled?: boolean
+  /** Credential reference resolved at execution time. */
+  apiKeyEnv?: string
+  /** Qwen-TTS model identifier. */
+  model?: string
+  /** Non-streaming DashScope generation endpoint. */
+  endpoint?: string
+  /** Maximum accepted text length in Unicode code points. */
+  maxTextLength?: number
+  /** Cooperative request timeout in milliseconds. */
+  timeoutMs?: number
+}
+```
+
+来源：[`packages/media/speech-generation-qwen/src/index.ts:22`](../packages/media/speech-generation-qwen/src/index.ts)
 
 <a id="deepseek-aidsh-spill-local"></a>
 
@@ -3435,4 +3525,5 @@ export interface Config {
 - `@deepseek-ai/dsh-util-time`（[`packages/util/time/src/index.ts`](../packages/util/time/src/index.ts)）
 - `@deepseek-ai/dsh-util-values`（[`packages/util/values/src/index.ts`](../packages/util/values/src/index.ts)）
 - `@deepseek-ai/dsh-util-workspace-path`（[`packages/util/workspace-path/src/index.ts`](../packages/util/workspace-path/src/index.ts)）
+- `@deepseek-ai/dsh-video-app`（[`packages/bundle/video-app/src/index.ts`](../packages/bundle/video-app/src/index.ts)）
 - `@deepseek-ai/dsh-win32-process`（[`packages/subprocess/win32-process/src/index.ts`](../packages/subprocess/win32-process/src/index.ts)）

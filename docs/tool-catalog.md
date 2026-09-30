@@ -5,9 +5,9 @@
 
 Every model-facing tool a shipped plugin contributes to `ctx.tools`: the `name`, `description`, and JSON-Schema `parameters` the model receives via the system-prompt assembly. It complements the [subsystem pages](subsystems/core.md) (the types plus each page's generated Cordis API region) — this page is the *tools* the agent is offered.
 
-This file is GENERATED and verified fresh by `pnpm run verify-tool-catalog` (part of `doc-sync`) — do not edit it by hand. Unlike the cordis catalog (a pure source-AST pass), this generator BOOTS each tool plugin on a real context and reads `ctx.tools.schemas()`, because a tool schema is not statically knowable (runtime-spread enums, concatenated descriptions, config-driven names, raw-JSON-Schema MCP tools). A completeness guard globs `packages/*/tool-*` and fails if any package is missing from the generator's boot manifest, so a new tool cannot be silently undocumented. See [the tool-schema-catalog Agent Note](../.agents/notes/implemented/process/2026-07-02-tool-schema-catalog.md).
+This file is GENERATED and verified fresh by `pnpm run verify-tool-catalog` (part of `doc-sync`) — do not edit it by hand. Unlike the cordis catalog (a pure source-AST pass), this generator BOOTS each tool plugin on a real context and reads `ctx.tools.schemas()`, because a tool schema is not statically knowable (runtime-spread enums, concatenated descriptions, config-driven names, raw-JSON-Schema MCP tools). A completeness guard scans `packages/*/tool-*` and `packages/media/{speech,image}-generation-*` and fails if any package is missing from the generator's boot manifest, so a new tool cannot be silently undocumented. See [the tool-schema-catalog Agent Note](../.agents/notes/implemented/process/2026-07-02-tool-schema-catalog.md).
 
-Scope: shipped product tools under `packages/*/tool-*`, each booted with its DEFAULT config, except where a Config field is REQUIRED with no default — there the generator must choose, and the per-package note records which branch this page shows. The registered tool NAME can be a load-time config (e.g. `tool-subagent`'s `toolName`), so a deployment may expose a package under a different or additional name — a per-package note records those shipped aliases where they exist. The `examples/` demo tools (e.g. `echo`) are excluded, matching the cordis catalog's packages-only scope.
+Scope: shipped product tools under `packages/*/tool-*` and `packages/media/{speech,image}-generation-*`, each booted with its DEFAULT config, except where a Config field is REQUIRED with no default — there the generator must choose, and the per-package note records which branch this page shows. The registered tool NAME can be a load-time config (e.g. `tool-subagent`'s `toolName`), so a deployment may expose a package under a different or additional name — a per-package note records those shipped aliases where they exist. The `examples/` demo tools (e.g. `echo`) are excluded, matching the cordis catalog's packages-only scope.
 
 ## Tool Package Map
 
@@ -41,6 +41,9 @@ This table connects model-visible tool names to the plugin package and service s
 | `@deepseek-ai/dsh-tool-todo` | `todo_write` | `ctx.tools`, `owning Agent session` | `tool/call`, `todo/write`, `tool/result` | - | todo_write is session-owned state; UIs render the latest todo/write event as a checklist. `allowParallelInProgress` is required with no default, so the catalog states its choice: `true`, whose description invites several `in_progress` items. A deployment choosing `false` receives the same tool with a description asking for exactly one active task. |
 | `@deepseek-ai/dsh-tool-workflow` | `workflow` | `ctx.tools`, `ctx.workflowEngine`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents the script children)` | `tool/call`, `tool/result` | - | - |
 | `@deepseek-ai/dsh-tool-web` | `web_fetch`, `web_search` | `ctx.tools`, `ctx.web`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps. |
+| `@deepseek-ai/dsh-speech-generation-qwen` | `generate_speech` | `ctx.tools`, `DASHSCOPE_API_KEY at execution` | `tool/call`, `tool/result` | - | The shipped tool is enabled by default and can be disabled in Plugins settings; audio URLs expire at the provider-reported time. |
+| `@deepseek-ai/dsh-image-generation-evolink` | `generate_image` | `ctx.tools`, `EVOLINK_API_KEY at execution` | `tool/call`, `tool/result` | - | The shipped tool is enabled by default and can be disabled in Plugins settings; generated image URLs expire after 24 hours. |
+| `@deepseek-ai/dsh-hyperframes-tools` | `video_lint`, `video_render`, `video_snapshot` | `ctx.tools`, `ctx.subprocess` | `tool/call`, `project snapshots or rendered MP4`, `tool/result` | - | The shipped tools are enabled by default and can be disabled from Plugins settings; rendering uses the bundled Hyperframes CLI. |
 
 <a id="deepseek-aidsh-tool-ask-user"></a>
 
@@ -2277,3 +2280,162 @@ Search the web for current information. Provide 1–4 queries in the required qu
 Source: [`packages/web/tool-web/src/index.ts`](../packages/web/tool-web/src/index.ts)
 
 web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps.
+
+<a id="deepseek-aidsh-speech-generation-qwen"></a>
+
+## `@deepseek-ai/dsh-speech-generation-qwen`
+
+### `generate_speech`
+
+Generate spoken audio from text with Qwen3-TTS. Choose a supported voice such as Cherry or Serena. Returns a downloadable audio URL that expires.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "text": {
+      "type": "string",
+      "description": "Text to speak."
+    },
+    "voice": {
+      "type": "string",
+      "description": "Qwen3-TTS voice ID, for example Cherry or Serena."
+    }
+  },
+  "required": [
+    "text",
+    "voice"
+  ]
+}
+```
+
+Source: [`packages/media/speech-generation-qwen/src/index.ts`](../packages/media/speech-generation-qwen/src/index.ts)
+
+The shipped tool is enabled by default and can be disabled in Plugins settings; audio URLs expire at the provider-reported time.
+
+<a id="deepseek-aidsh-image-generation-evolink"></a>
+
+## `@deepseek-ai/dsh-image-generation-evolink`
+
+### `generate_image`
+
+Generate an image from a prompt with Evolink Z-Image-Turbo. Returns image URLs that expire after 24 hours.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "description": "Describe the image to generate (up to 2000 characters)."
+    },
+    "size": {
+      "type": "string",
+      "description": "Image aspect ratio; defaults to 1:1.",
+      "enum": [
+        "1:1",
+        "2:3",
+        "3:2",
+        "3:4",
+        "4:3",
+        "9:16",
+        "16:9",
+        "1:2",
+        "2:1"
+      ]
+    },
+    "seed": {
+      "type": "integer",
+      "description": "Optional reproducible random seed (1 to 2147483647)."
+    },
+    "nsfw_check": {
+      "type": "boolean",
+      "description": "Enable stricter content filtering."
+    }
+  },
+  "required": [
+    "prompt"
+  ]
+}
+```
+
+Source: [`packages/media/image-generation-evolink/src/index.ts`](../packages/media/image-generation-evolink/src/index.ts)
+
+The shipped tool is enabled by default and can be disabled in Plugins settings; generated image URLs expire after 24 hours.
+
+<a id="deepseek-aidsh-hyperframes-tools"></a>
+
+## `@deepseek-ai/dsh-hyperframes-tools`
+
+### `video_lint`
+
+Run Hyperframes static project checks and report syntax and composition findings.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "projectPath": {
+      "type": "string",
+      "description": "Absolute path to a Hyperframes project directory."
+    }
+  },
+  "required": [
+    "projectPath"
+  ]
+}
+```
+
+Source: [`packages/media/hyperframes-tools/src/index.ts`](../packages/media/hyperframes-tools/src/index.ts)
+
+### `video_render`
+
+Render a Hyperframes project to an MP4 file with the Hyperframes renderer.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "projectPath": {
+      "type": "string",
+      "description": "Absolute path to a Hyperframes project directory."
+    }
+  },
+  "required": [
+    "projectPath"
+  ]
+}
+```
+
+Source: [`packages/media/hyperframes-tools/src/index.ts`](../packages/media/hyperframes-tools/src/index.ts)
+
+### `video_snapshot`
+
+Render one to nine Hyperframes timestamps and combine them into a three-column contact sheet.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "projectPath": {
+      "type": "string",
+      "description": "Absolute path to a Hyperframes project directory."
+    },
+    "times": {
+      "type": "array",
+      "description": "One to nine timestamps in seconds. Hyperframes renders them in this order.",
+      "items": {
+        "type": "number"
+      }
+    }
+  },
+  "required": [
+    "projectPath",
+    "times"
+  ]
+}
+```
+
+Source: [`packages/media/hyperframes-tools/src/index.ts`](../packages/media/hyperframes-tools/src/index.ts)
+
+The shipped tools are enabled by default and can be disabled from Plugins settings; rendering uses the bundled Hyperframes CLI.

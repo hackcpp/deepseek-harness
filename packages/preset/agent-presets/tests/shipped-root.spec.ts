@@ -58,7 +58,7 @@ describe('the shipped preset root', () => {
     const ctx = await roster({ includeUserRoot: false })
 
     const listed = await ctx.agentPresets.list()
-    expect(listed.map(preset => preset.id).sort()).toEqual(['cordis', 'minimal', 'ptc', 'standard'])
+    expect(listed.map(preset => preset.id).sort()).toEqual(['cordis', 'minimal', 'ptc', 'standard', 'video'])
     expect(listed.every(preset => preset.trust === 'system')).toBe(true)
     // Not `broken === undefined`: health asks whether each row's package is
     // installed above the base, and the shipped rows name packages the
@@ -109,6 +109,25 @@ describe('the shipped preset root', () => {
         throw new TypeError(`${id} preset must configure tool-web.fetch`)
       }
       expect(toolWeb.config.fetch, id).toBe(true)
+    }
+  })
+
+  it('ships video mode with its staged persona and inherits Host media tools', async () => {
+    const source = await readFile(join(SHIPPED_PRESET_ROOT, 'video', 'agent.cordis.yml'), 'utf8')
+    const entries: unknown = yaml.load(source, { schema: entryListSchema })
+    if (!Array.isArray(entries)) throw new TypeError('video preset must contain a Cordis entry list')
+    const byId = new Map(entries.map((entry: unknown) => {
+      if (typeof entry !== 'object' || entry === null || !('id' in entry)) {
+        throw new TypeError('video preset entries must have ids')
+      }
+      return [entry.id, entry] as const
+    }))
+    const persona = byId.get('persona') as { config?: { text?: unknown } } | undefined
+    expect(persona?.config?.text).toEqual(expect.stringContaining('三个阶段'))
+    expect(persona?.config?.text).toEqual(expect.stringContaining('script.json'))
+    expect(persona?.config?.text).toEqual(expect.stringContaining('绝不调用 video_render'))
+    for (const id of ['speech-generation-qwen', 'image-generation-evolink', 'hyperframes-tools']) {
+      expect(byId.has(id), id).toBe(false)
     }
   })
 })

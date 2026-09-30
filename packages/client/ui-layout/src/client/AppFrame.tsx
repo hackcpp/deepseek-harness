@@ -23,7 +23,15 @@ import css from './AppFrame.module.css'
 /** Full composed props: runtime share + child-slot render share + store share. */
 export type AppFrameProps =
   & PropsRuntime<'root'>
-  & PropsRenderSlots<'sidebar' | 'conversation' | 'details' | 'shell.overlay'>
+  & PropsRenderSlots<
+    | 'sidebar'
+    | 'conversation'
+    | 'details'
+    | 'shell.overlay'
+    | 'shell.mode.switcher'
+    | 'shell.mode.navigation'
+    | 'shell.mode.canvas'
+  >
   & PropsStore<ReturnType<typeof createLayoutStore>>
   & PropsLocale<'common'>
 
@@ -171,12 +179,19 @@ export function AppFrame({
     actions.setDetails(detailsBase.current - dx)
   }, [actions])
   const productTitle = process.env.DSH_CLIENT_TITLE ?? t('brand.localBuild')
+  const videoMode = panels.applicationMode === 'video'
+  const setMode = (mode: 'default' | 'video'): void => { actions.setApplicationMode(mode) }
 
   return (
     <div
       ref={frameRef}
       className={css.frame}
-      style={{ gridTemplateColumns: `${cols.sidebar}px minmax(0, 1fr) ${cols.details}px` }}
+      style={{
+        gridTemplateColumns: videoMode
+          ? '240px minmax(0, 1fr) minmax(360px, 32vw)'
+          : `${cols.sidebar}px minmax(0, 1fr) ${cols.details}px`,
+      }}
+      data-application-mode={panels.applicationMode}
       data-sidebar-collapsed={sidebarCollapsed || undefined}
       data-details-collapsed={cols.details === 0 || undefined}
       data-dragging={dragging || undefined}
@@ -185,34 +200,51 @@ export function AppFrame({
         productTitle={productTitle}
         {...documentTitle === undefined ? {} : { title: documentTitle }}
       />
-      <div className={css.sidebarCol}>
-        {/* Render-site slot call with live concession output: a closed
-            sidebar keeps the mounted slot at the compact-rail width, and the
-            component sees its rendered state as owner params decided here
-            (collapsed follows the resolved rail, so a derived auto-collapse
-            renders the rail UI too). */}
-        {renderSlot('sidebar', {
-          collapsed: sidebarCollapsed,
-          width: cols.sidebar,
-        })}
+      <div className={css.modeBar}>
+        {renderSlot('shell.mode.switcher', { mode: panels.applicationMode, setMode })}
       </div>
-      <>
-        {/* Both column occupants stay at fixed tree positions from first
-            paint — no loading gate: a bare status line reads worse than
-            the shell's own pending rendering. The conversation
-            is session-maybe; SessionProvider withholds the strict details
-            entry while no session is current. */}
-        <CenterColumn>{renderSlot('conversation', {})}</CenterColumn>
-        <DetailsColumn>
-          <SessionProvider>{renderSlot('details', {})}</SessionProvider>
-        </DetailsColumn>
-      </>
+      {videoMode ? (
+        <>
+          <div className={css.modeNavigation}>
+            {renderSlot('shell.mode.navigation', { mode: panels.applicationMode }, { entryKey: panels.applicationMode })}
+          </div>
+          <div className={css.modeCanvas}>
+            {renderSlot('shell.mode.canvas', { mode: panels.applicationMode }, { entryKey: panels.applicationMode })}
+          </div>
+          <CenterColumn>{renderSlot('conversation', {})}</CenterColumn>
+        </>
+      ) : (
+        <>
+          <div className={css.sidebarCol}>
+            {/* Render-site slot call with live concession output: a closed
+                sidebar keeps the mounted slot at the compact-rail width, and the
+                component sees its rendered state as owner params decided here
+                (collapsed follows the resolved rail, so a derived auto-collapse
+                renders the rail UI too). */}
+            {renderSlot('sidebar', {
+              collapsed: sidebarCollapsed,
+              width: cols.sidebar,
+            })}
+          </div>
+          <>
+            {/* Both column occupants stay at fixed tree positions from first
+                paint — no loading gate: a bare status line reads worse than
+                the shell's own pending rendering. The conversation
+                is session-maybe; SessionProvider withholds the strict details
+                entry while no session is current. */}
+            <CenterColumn>{renderSlot('conversation', {})}</CenterColumn>
+            <DetailsColumn>
+              <SessionProvider>{renderSlot('details', {})}</SessionProvider>
+            </DetailsColumn>
+          </>
+        </>
+      )}
       <div className={css.overlayLayer} data-shell-overlay>
         {renderSlot('shell.overlay', {})}
       </div>
       {/* The collapsed rail is fixed-width: no resize handle while closed. */}
-      {!sidebarCollapsed && <DragHandle side="sidebar" left={cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
-      {cols.details > 0 && <DragHandle side="details" left={viewport - cols.details} onStart={onDetailsStart} onDrag={onDetailsDrag} onEnd={onDragEnd} />}
+      {!videoMode && !sidebarCollapsed && <DragHandle side="sidebar" left={cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
+      {!videoMode && cols.details > 0 && <DragHandle side="details" left={viewport - cols.details} onStart={onDetailsStart} onDrag={onDetailsDrag} onEnd={onDragEnd} />}
     </div>
   )
 }

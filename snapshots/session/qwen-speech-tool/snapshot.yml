@@ -1,0 +1,9 @@
+version: 1
+scenario: qwen-speech-tool
+profile: headless
+composition: qwen-speech-tool
+recording: authored
+header:
+  class: qwen-speech-tool
+  pin: true
+  systemPromptSource: text-turn

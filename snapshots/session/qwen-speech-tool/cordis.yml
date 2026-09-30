@@ -1,0 +1,16 @@
+# 此选择性启用组合用于证明内置 Qwen 语音插件会在启用后发布 Agent 工具。
+# CI 使用手工录制内容进行无密钥回放。
+- id: speech-generation-qwen
+  name: '@deepseek-ai/dsh-speech-generation-qwen'
+  config:
+    enabled: true
+
+- id: image-generation-evolink
+  name: '@deepseek-ai/dsh-image-generation-evolink'
+  config:
+    enabled: false
+
+- id: hyperframes-tools
+  name: '@deepseek-ai/dsh-hyperframes-tools'
+  config:
+    enabled: false
